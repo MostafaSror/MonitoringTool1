@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+<div class="row">
+    {% block content %}
+    {% csrf_token %}
+        <h1>Please enter info of env.</h1>
+        <label for="groupList">Group Name:</label>
+        <select id="groupList" name="group"  >
+            {% for group in groups %}
+            <option value={{ group}}>{{ group }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="serverList">List of related IPs:</label>
+        <select id="serverList" name="server"  >
+        </select>
+        <br />
+        <br />
+        <p><input class="log_type" type="radio" id="is_open_log"  name="log_state" value="1" >Increase "open"</p>
+        <p><input class="log_type" type="radio" id="is_close_log" name="log_state" value="1" >Decrease "close"</p>
+
+
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('groupList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var is_open_log = document.getElementById("is_open_log").checked;
+            var is_close_log = document.getElementById("is_close_log").checked ;
+            var data = { 'search_group':list1SelectedValue , 'is_open_log': is_open_log , 'is_close_log': is_close_log };
+
+            $.post("changelogfn", data, function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                alert(response)
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('serverList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            list2.options.length=0;
+
+            {% for s in servers %}
+                var result = '{{s.group_name.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ s.IP }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+        }
+
+    </script>
+
+    {% endblock %}
+
+</div>

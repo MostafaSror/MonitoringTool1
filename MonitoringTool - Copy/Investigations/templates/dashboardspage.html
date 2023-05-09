@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter deployment info</h1>
+    <form enctype ="multipart/form-data">
+        <label for="actionsList">Action Type:</label>
+        <select id="actionsList" name="actionsList" required >
+            <option value='Create_Dashboard'>Create Dashboard</option>
+        </select>
+        <br />
+        <br />
+        <label for="dasboardsList" id="dasboardsListLabel">Dashboard name :</label>
+        <select id="dasboardsList" name="dasboardsList" required onclick="getDashboardInputs()">
+            {% for dashboard in dashboards %}
+            <option value="{{ dashboard.name }}">{{ dashboard.name }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="username" id="usernamelabel">username :</label>
+        <input type="text" size="50" name="username" id="username" required />
+        <br>
+        <br />
+        <label for="password" id="passwordlabel">password :</label>
+        <input type="text" size="50" name="password" id="password" required />
+        <br>
+        <br>
+        <label for="user_desc" id="user_desclabel">user description :</label>
+        <input type="text" size="100" name="user_desc" id="user_desc" required />
+        <br>
+        <br>
+        <label for="AppRole" style="display: none" id="AppRolelabel">app role name :</label>
+        <input type="text" size="100" name="AppRole" id="AppRole" required style="display: none"/>
+        <br>
+    </form>
+    <br>
+    <button id="myButton" class="float-left submit-button" >Create</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var actionsList = document.getElementById('actionsList');
+            var actionSelected = actionsList.options[actionsList.selectedIndex].value;
+            var dashboardslist = document.getElementById('dasboardsList');
+            var dashboardSelected = dashboardslist.options[dashboardslist.selectedIndex].value;
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            var user_desc = document.getElementById("user_desc").value;
+            var AppRole = document.getElementById("AppRole").value;
+
+            if (username == null || password == null){
+                alert("please enter username and password");
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+            }else{
+                var data = {
+                         'action_type':actionSelected,
+                         'dashboard':dashboardSelected,
+                         'username':username,
+                         'password':password,
+                         'user_desc':user_desc,
+                         'AppRole':AppRole,
+
+                };
+
+                $.post("dashboardsfn", data, function(response){
+                    $(".spinner-border").hide();
+                    document.getElementById("myButton").style.display = "block";
+                    document.getElementById("result").innerHTML = response;
+                }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+            }
+        };
+
+        function getDashboardInputs(){
+            var actionsList = document.getElementById('actionsList');
+            var actionsListSelected = actionsList.options[actionsList.selectedIndex].value;
+            var dasboardsList = document.getElementById('dasboardsList');
+            var dasboardSelected = dasboardsList.options[dasboardsList.selectedIndex].value;
+
+            var hasAppRole = false;
+
+            {% for dash in dashboards %}
+                var result = '{{dash.name}}'.localeCompare(dasboardSelected);
+                if (result == 0){
+                    hasAppRole = "{{ dash.hasAppRole }}";
+                    console.log(hasAppRole)
+                }
+            {% endfor %}
+
+            if( hasAppRole == 'True' && actionsListSelected == 'Create_Dashboard'){
+                document.getElementById("AppRole").style.display = "block";
+                document.getElementById("AppRolelabel").style.display = "block";
+
+            }
+            else {
+                document.getElementById("AppRole").style.display = "none";
+                document.getElementById("AppRolelabel").style.display = "none";
+            }
+        }
+
+    </script>
+    {% endblock %}
+</div>

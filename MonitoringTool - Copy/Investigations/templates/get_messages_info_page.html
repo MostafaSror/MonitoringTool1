@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+<div class="row">
+    {% block content %}
+    {% csrf_token %}
+        <h1>Please enter info of env.</h1>
+        <label for="groupList">Group Name:</label>
+        <select id="groupList" name="group"  >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="serverList">List of related IPs:</label>
+        <select id="serverList" name="server"  >
+        </select>
+        <br />
+        <br />
+        <label for="Async">Required text:</label>
+        <input type="text" size="30" name="Async" id="Async">
+        <br>
+        <br>
+        <p class="log_type" style="display: none"><input type="radio" id="is_gateway_log"  name="logfile_type" value="1" >gateway.log</p>
+        <p class="log_type" style="display: none"><input type="radio" id="is_server_log" name="logfile_type" value="1" >server.log</p>
+        <p class="log_type" style="display: none"><input type="radio" id="is_sof_log" name="logfile_type" value="1" >sof.log</p>
+
+        <p class="hour_var" style="display: none">Select trx time(from 0 to 23):
+            <input type="number" id="logHour" name="tentacles" min="0" max="23"></p>
+        <br>
+        <p class="date_var" style="display: none">Log file date: <input type="date" id="trx_date"></p>
+    <br>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+    <ul id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></ul>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var Async = document.getElementById("Async").value;
+            var list1 = document.getElementById('groupList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var trx_date = document.getElementById("trx_date").value;
+            var trx_hour = document.getElementById("logHour").value;
+            var is_switch = 'false';
+
+            if(list1SelectedValue == 'PROD-SW-Old'){
+                is_switch = 'switch';
+            }else if(list1SelectedValue == 'PROD-CONS-Myfawry-MCC'){
+                search_type = 'archive';
+                var is_gateway_log = document.getElementById("is_gateway_log").checked;
+                var is_sof_log = document.getElementById("is_sof_log").checked ;
+                var is_server_log = document.getElementById("is_server_log").checked ;
+                if ( is_gateway_log ){
+                    is_switch = 'mcc-gateway';
+                } else if ( is_server_log ){
+                    is_switch = 'mcc-server';
+                }
+                else if ( is_sof_log ){
+                    is_switch = 'mcc-sof';
+                }
+            } else if(list1SelectedValue == 'PROD-SW-IIB' || list1SelectedValue == 'Staging-Switch' || list1SelectedValue == 'Staging-Banking-SW' || list1SelectedValue == 'PROD-SW-InterOP' || list1SelectedValue == 'PROD_Orange_SW'){
+                is_switch = 'sw-iib';
+            }
+            var data = {'Async': Async , 'search_group':list1SelectedValue , 'trx_date': trx_date , 'is_switch': is_switch , 'trx_hour': trx_hour };
+
+            $.post("getmessagesfromlogsfn", data,function(response){
+                $(".spinner-border").hide();
+                $( 'html' ).html( response ).show('slow');
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('serverList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            list2.options.length=0;
+
+            {% for s in servers %}
+                var result = '{{s.group_name.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ s.IP }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+
+            if(list1SelectedValue == 'PROD-SW-Old' || list1SelectedValue == 'PROD-SW-IIB' || list1SelectedValue == 'Staging-Switch' || list1SelectedValue == 'Staging-Banking-SW' || list1SelectedValue == 'PROD-SW-InterOP' || list1SelectedValue == 'PROD_Orange_SW'){
+                $(".date_var").show();
+                $(".hour_var").show();
+                $(".log_type").hide();
+                $(".search_type").show();
+            }
+            else if(list1SelectedValue == 'PROD-CONS-Myfawry-MCC'){
+                $(".log_type").show();
+                $(".date_var").hide();
+                $(".hour_var").hide();
+                $(".search_type").hide();
+
+            }
+            else{
+                $(".date_var").hide();
+                $(".hour_var").hide();
+                $(".log_type").hide();
+                $(".search_type").show();
+            }
+        }
+
+    </script>
+
+    {% endblock %}
+
+</div>

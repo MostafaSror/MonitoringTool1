@@ -1,0 +1,45 @@
+
+body {
+    background-color: pink;
+}
+
+#result {
+  color: black;
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table {
+    border : 2px;
+    width : 100%
+}
+
+.info-class:nth-child(n):hover {
+  background-color: #FFA500;
+}
+.info-class:nth-child(even) {
+    background-color: #D3D3D3;
+}
+.info-class:nth-child(odd) {
+    background-color: #FAF0E6;
+}
+
+.input-table{
+    border : 0px;
+    width: 30%;
+}
+
+th {
+    background-color: crimson;
+    text-transform: uppercase;
+    padding : 5px;
+}
+
+td {
+    padding : 5px;
+    text-align : center;
+}
+
+
+

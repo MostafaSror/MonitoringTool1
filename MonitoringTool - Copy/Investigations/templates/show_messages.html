@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Messages</h1>
+{% for message in messages %}
+<dev class="row" style="margin-top: 5px; margin-bottom: 5px; margin-right: 5px; margin-left: 5px; ">
+    <dev class="col">
+        <div class="card" >
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                    <?xml version="1.0" encoding="ISO-8859-1"?>
+
+                    {% for msg in message %}
+                        <p>{{ msg }}</p>
+                        <br>
+                    {% endfor %}
+
+            </div>
+        </div>
+    </dev>
+</dev>
+{% endfor %}
+{% endblock %}

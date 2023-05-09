@@ -1,0 +1,136 @@
+count_exceptions_info_page.html{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="actionsList">Action Type:</label>
+        <select id="actionsList" name="actionsList" required >
+            <option value='get_downloads'>get downloads per hour</option>
+            <option value='get_terminals'>get downloads per terminal</option>
+        </select>
+        <br />
+        <br />
+        <label for="groupList">Group Name:</label>
+        <select id="groupList" name="group" required >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <p class="date_var" >Log file date: <input type="date" id="trx_date"></p>
+    </form>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+
+    <p id="result" style="display: none; border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+
+        document.getElementById("myButton").onclick = function () {
+            var actionsList = document.getElementById('actionsList');
+            var action = actionsList.options[actionsList.selectedIndex].value;
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('groupList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var trx_date = document.getElementById("trx_date").value;
+            var is_switch = 'false';
+            if(list1SelectedValue == 'PROD-SW-Old'){
+                is_switch = 'switch';
+            } else if(list1SelectedValue == 'PROD-CONS-Myfawry-MCC'){
+                var is_gateway_log = document.getElementById("is_gateway_log").checked;
+                var is_sof_log = document.getElementById("is_sof_log").checked ;
+                var is_server_log = document.getElementById("is_server_log").checked ;
+                if ( is_gateway_log ){
+                    is_switch = 'mcc-gateway';
+                } else if ( is_server_log ){
+                    is_switch = 'mcc-server';
+                }
+                else if ( is_sof_log ){
+                    is_switch = 'mcc-sof';
+                }
+            } else if(list1SelectedValue == 'PROD-SW-IIB'){
+                is_switch = 'sw-iib';
+            }
+
+            var data = { 'search_group':list1SelectedValue , 'trx_date': trx_date , 'is_switch': is_switch, 'action': action };
+
+            $.post("downloadmonitorfn", data,function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                console.log(response)
+                document.getElementById("result").innerHTML = response;
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                localStorage.setItem("response", response);
+                drawChart();
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('exceptionList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var componentType;
+
+            list2.options.length=0;
+
+            {% for g in groups %}
+                var result = '{{g.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    componentType = "{{ g.AppComponentTypeCode }}";
+                }
+            {% endfor %}
+
+            console.log(componentType)
+
+            {% for e in exceptions %}
+                var result = '{{e.AppComponentType}}'.localeCompare(componentType);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ e.Code }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+
+        }
+        function drawChart() {
+
+            var result = localStorage.getItem("response")
+
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Topping');
+            data.addColumn('number', '10.100.43.202');
+            data.addColumn('number', '10.100.43.203');
+            data.addColumn('number', '10.100.43.204');
+            console.log(JSON.parse(result))
+            data.addRows(JSON.parse(result));
+
+            var options = {
+                title: 'Download Performance',
+                curveType: 'function',
+                legend: { position: 'bottom' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+            chart.draw(data, options);
+        }
+
+    </script>
+
+    {% endblock %}
+
+</div>

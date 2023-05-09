@@ -1,0 +1,122 @@
+
+<!doctype html>
+{% load static %}
+<html lang="en">
+   <head>
+      <!-- Required meta tags -->
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <!-- Bootstrap CSS -->
+
+       <title>myFawryBOTool</title>
+       <style>
+        body {
+            background-color: Teal;
+        }
+
+        #result {
+            color: black;
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table {
+            border : 2px;
+            width : 100%
+        }
+
+        .info-class:nth-child(n):hover {
+            background-color: #FFA500;
+        }
+        .info-class:nth-child(even) {
+            background-color: #D3D3D3;
+        }
+        .info-class:nth-child(odd) {
+            background-color: #FAF0E6;
+        }
+
+        .input-table{
+            border : 0px;
+            width: 30%;
+        }
+
+        th {
+            background-color: crimson;
+            text-transform: uppercase;
+            padding : 5px;
+        }
+
+        td {
+            padding : 5px;
+            text-align : center;
+        }
+
+      </style>
+   </head>
+   <body>
+      <div style="margin-top: 10px; margin-left: 20px;">
+            {% csrf_token %}
+            <h1>Enter customer info</h1>
+            <form>
+                <br>
+               <br>
+               <table class="input-table">
+                   <tr class="input-row">
+                       <td>
+                            <label for="mob_id">Mobile:</label>
+                       </td>
+                       <td>
+                            <input type="tel" size="40" name="Async" id="mob_id" required="true" />
+                       </td>
+                   </tr>
+                   <tr class="input-row">
+                       <td>
+                           <label for="mail_id">Mail:  </label>
+                       </td>
+                       <td>
+                           <input type="email" size="40" name="Async" id="mail_id" required />
+                       </td>
+                   </tr>
+               </table>
+                <br>
+               <br>
+            </form>
+            <button id="myButton" class="float-left submit-button" >Search</button>
+            <div class="spinner-border text-warning" role="status" style="display: none">
+               <span class="sr-only">Loading...</span>
+            </div>
+            <br>
+            <br>
+            <p id="result" ></p>
+            <script type="text/javascript">
+               document.getElementById("myButton").onclick = function () {
+                   document.getElementById("myButton").style.display = "none";
+                   $(".spinner-border").show();
+                   var mobile = document.getElementById("mob_id").value;
+                   var mail = document.getElementById("mail_id").value;
+
+                   var data = {'mobile': mobile , 'mail':mail};
+
+                   $.post("getcustfn", data,function(response){
+                       $(".spinner-border").hide();
+                       document.getElementById("myButton").style.display = "block";
+                       document.getElementById("result").innerHTML = response;
+                   });
+               };
+
+            </script>
+
+      </div>
+      <!-- Optional JavaScript -->
+      <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+      <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/momentjs/2.14.1/moment.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+   </body>
+</html>

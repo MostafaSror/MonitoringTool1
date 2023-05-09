@@ -1,0 +1,111 @@
+count_exceptions_info_page.html{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="groupList">Group Name:</label>
+        <select id="groupList" name="group" required >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="exceptionList">List of exceptions:</label>
+        <select id="exceptionList" name="server"  >
+        </select>
+        <br>
+        <br>
+        <label for="logHour">Select a time(from 0 to 23):</label>
+        <input type="number" id="logHour" name="tentacles" min="0" max="23">
+        <br>
+        <p class="date_var" >Log file date: <input type="date" id="trx_date"></p>
+    </form>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('groupList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var list2 = document.getElementById('exceptionList');
+            var list2SelectedValue = list2.options[list2.selectedIndex].value;
+            var hour = document.getElementById("logHour").value;
+            var trx_date = document.getElementById("trx_date").value;
+            var is_switch = 'false';
+            if(list1SelectedValue == 'PROD-SW-Old'){
+                is_switch = 'switch';
+            } else if(list1SelectedValue == 'PROD-CONS-Myfawry-MCC'){
+                var is_gateway_log = document.getElementById("is_gateway_log").checked;
+                var is_sof_log = document.getElementById("is_sof_log").checked ;
+                var is_server_log = document.getElementById("is_server_log").checked ;
+                if ( is_gateway_log ){
+                    is_switch = 'mcc-gateway';
+                } else if ( is_server_log ){
+                    is_switch = 'mcc-server';
+                }
+                else if ( is_sof_log ){
+                    is_switch = 'mcc-sof';
+                }
+            } else if(list1SelectedValue == 'PROD-SW-IIB'){
+                is_switch = 'sw-iib';
+            }
+
+            var data = {'exception_code': list2SelectedValue , 'search_group':list1SelectedValue , 'trx_date': trx_date , 'trx_time': hour , 'is_switch': is_switch };
+
+            $.post("countexceptionsfn", data,function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = response;
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('exceptionList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var componentType;
+
+            list2.options.length=0;
+
+            {% for g in groups %}
+                var result = '{{g.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    componentType = "{{ g.AppComponentTypeCode }}";
+                }
+            {% endfor %}
+
+            console.log(componentType)
+
+            {% for e in exceptions %}
+                var result = '{{e.AppComponentType}}'.localeCompare(componentType);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ e.Code }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+
+        }
+
+    </script>
+
+    {% endblock %}
+
+</div>

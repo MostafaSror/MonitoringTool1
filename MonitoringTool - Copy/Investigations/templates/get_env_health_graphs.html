@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="envList">Group Name:</label>
+        <select id="envList" name="group" required >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <br>
+        <p class="date_var" >Log file date: <input type="date" id="trx_date"></p>
+        <br>
+    </form>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <div id="curve_chart" ></div>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('envList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var trx_date = document.getElementById("trx_date").value;
+
+            var data = {'search_group':list1SelectedValue , 'trx_date': trx_date};
+
+            $.post("checkenvhealthgraphsfn", data,function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").style.display = "none";
+                document.getElementById("result").innerHTML = response;
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                localStorage.setItem("response", response);
+                drawChart();
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+        function drawChart() {
+
+            var result = JSON.parse(localStorage.getItem("response"))
+            var parent = document.getElementById('curve_chart')
+            while (parent.firstChild) {
+                parent.firstChild.remove()
+            }
+            for(let rec in result){
+                console.log(result[rec])
+                g = document.createElement('div');
+                g.setAttribute("id", Object.keys(result[rec]));
+                g.setAttribute("style", "width: 1500px; height: 500px");
+                document.getElementById('curve_chart').append(g)
+                excep = Object.values(result[rec])[0]
+                var data = new google.visualization.DataTable();
+                data.addColumn('string', 'time');
+                for( let x = 1; x < excep[0].length ; x++ ){
+                    data.addColumn('number', 'server' + x.toString());
+                }
+
+                console.log(excep)
+                data.addRows(excep);
+
+                var options = {
+                    title: 'Exception: ' + Object.keys(result[rec]),
+                    curveType: 'function',
+                    legend: { position: 'bottom' },
+                    hAxis: {
+                        gridlines: {count: 40}
+                    }
+                };
+
+                var chart = new google.visualization.LineChart(g);
+
+                chart.draw(data, options);
+            }
+        }
+
+    </script>
+
+    {% endblock %}
+
+</div>

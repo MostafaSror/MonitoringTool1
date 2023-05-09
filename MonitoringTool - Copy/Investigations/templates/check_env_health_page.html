@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="envList">Group Name:</label>
+        <select id="envList" name="group" required >
+            {% for env in environments %}
+            <option value={{ env.envName }}>{{ env.envName }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <br>
+        <p class="range_var" >time greater than: <input type="number" id="gthr" name="tentacles" min="0" max="23" value="0">
+            hr and greater than: <input type="number" id="lthr" name="tentacles" min="0" max="23"> hr</p>
+        <br>
+    </form>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('envList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+            var gthour = document.getElementById("gthr").value;
+            var lthour = document.getElementById("lthr").value;
+
+            var data = {'search_env':list1SelectedValue , 'gt_hour': gthour ,'lt_hour': lthour };
+
+            $.post("checkenvhealthfn", data,function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = response;
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+    </script>
+
+    {% endblock %}
+
+</div>

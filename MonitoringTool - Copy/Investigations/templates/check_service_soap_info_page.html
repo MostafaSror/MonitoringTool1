@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="envList">Env. Name:</label>
+        <select id="envList" name="env" required >
+            {% for env in environments %}
+            <option value={{ env.envName }}>{{ env.envName }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <br>
+    <button id="myButton" class="float-left submit-button" >Run</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('envList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            var data = {'search_env':list1SelectedValue };
+
+            $.post("sendservicesoapinfofn", data,function(response){
+                    $(".spinner-border").hide();
+                    document.getElementById("myButton").style.display = "block";
+                    document.getElementById("result").innerHTML = response;
+                }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+    </script>
+
+    {% endblock %}
+
+</div>

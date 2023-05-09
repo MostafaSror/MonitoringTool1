@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+<div class="row">
+    {% block content %}
+    {% csrf_token %}
+        <h1>OBIE Handling</h1>
+        <br />
+        <br />
+
+    <button id="myButton" class="float-left submit-button" >Collect health Statistics</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+    <ul id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></ul>
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            $.post("checkobie", function(response){
+                $(".spinner-border").hide();
+                document.getElementById("result").innerHTML = response;
+            });
+        };
+
+    </script>
+
+    {% endblock %}
+
+</div>

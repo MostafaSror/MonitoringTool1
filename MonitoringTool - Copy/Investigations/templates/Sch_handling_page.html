@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+<div class="row">
+    {% block content %}
+    {% csrf_token %}
+        <h1>Scheduler Handling</h1>
+        <br />
+        <br />
+        <label for="actionsList">Action Type:</label>
+        <select id="actionsList" name="actionsList" required >
+            <option value='start-sch'>Start Scheduler</option>
+            <option value='run-background_env_monitor'>Run Env Exceptions Monitor job</option>
+            <option value='run-db_queries_checker'>Run DB queries checker</option>
+            <option value='run-api_requests_checker'>Run api requests checker</option>
+            <option value='run-was_queues_checker'>Run was queues checker</option>
+            <option value='stop-background_env_monitor'>Stop Env Exceptions Monitor job</option>
+            <option value='stop-db_queries_checker'>Stop DB queries checker</option>
+            <option value='stop-api_requests_checker'>Stop api requests checker</option>
+            <option value='stop-was_queues_checker'>Stop was queues checker</option>
+            <option value='check-jobs-status'>Check jobs status</option>
+            <option value='shutdown-sch'>Stop running scheduler</option>
+        </select>
+        <br />
+    <button id="myButton" class="float-left submit-button" >Execute</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+    <ul id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></ul>
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+
+            var actionsList = document.getElementById('actionsList');
+            var actionsListSelected = actionsList.options[actionsList.selectedIndex].value;
+
+            var data = {
+                         'action':actionsListSelected,
+            };
+
+            $(".spinner-border").show();
+            $.post("startscheduler", data, function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = response;
+            });
+        };
+
+    </script>
+
+    {% endblock %}
+
+</div>

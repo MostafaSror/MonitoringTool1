@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <form>
+        <label for="envList">Group Name:</label>
+        <select id="envList" name="group" required >
+            {% for env in environments %}
+            <option value={{ env.envName }}>{{ env.envName }}</option>
+            {% endfor %}
+        </select>
+        <br>
+    </form>
+    <dev id="myButton" class="float-left submit-button" ></dev>
+    <br>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        setInterval(timer, 10000);
+
+        function timer() {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var list1 = document.getElementById('envList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            var data = {'search_env':list1SelectedValue };
+
+            $.post("checkrepqueriesfn", data,function(response){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = response;
+            }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+        };
+
+    </script>
+
+    {% endblock %}
+
+</div>

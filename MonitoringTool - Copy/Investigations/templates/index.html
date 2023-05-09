@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Functions</h1>
+<dev class="row">
+    {% if perms.auth.can_check_log_files %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Search by Async</h5>
+                <p class="card-text"></p>
+                <a href="/getlogfilesinfoPage" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_check_log_requests %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Get Req&Res</h5>
+                <p class="card-text"></p>
+                <a href="/searchmessagesinfopage" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_check_archive_requests %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Archived Logs</h5>
+                <p class="card-text"></p>
+                <a href="/archivedlogsinfo" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+</dev>
+<dev class="row">
+    {% if perms.auth.check_queries_health_graphs %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">queries health graphs page</h5>
+                <p class="card-text"></p>
+                <a href="/getqueriesgraphs" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.check_rep_query_monitor_page %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Representational query monitor</h5>
+                <p class="card-text"></p>
+                <a href="/getrepqueryresults" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.check_env_health_graphs %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">env health graphs</h5>
+                <p class="card-text"></p>
+                <a href="/gethealthgraphs" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+</dev>
+<dev class="row">
+    {% if perms.auth.can_monitor_apis %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">check API status</h5>
+                <p class="card-text"></p>
+                <a href="/sendservicesoapinfopage" class="btn btn-primary">Enter</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+
+    {% if perms.auth.can_check_using_soap %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">check using Soap</h5>
+                <p class="card-text"></p>
+                <a href="/sendsoapinfo" class="btn btn-primary">Enter</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.search_myfawry_users %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Search Customer</h5>
+                <p class="card-text"></p>
+                <a href="/userinfopage" class="btn btn-primary">Enter</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+
+
+</dev>
+<dev class="row">
+    {% if perms.auth.can_check_env_health %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Check env. health</h5>
+                <p class="card-text"></p>
+                <a href="/sendhealthcheck" class="btn btn-primary">Enter</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_handle_obie_check %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">OBIE Handling</h5>
+                <p class="card-text"></p>
+                <a href="/checkobipage" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_control_scheduler_tasks %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Scheduler Handler</h5>
+                <p class="card-text"></p>
+                <a href="/checkschedulerpage" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+</dev>
+<dev class="row">
+    {% if perms.auth.can_control_deployment_tasks %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Deployment</h5>
+                <p class="card-text"></p>
+                <a href="/deploypage" class="btn btn-primary">start</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_monitor_version_downloads %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Download monitor</h5>
+                <p class="card-text"></p>
+                <a href="/downloadmonitor" class="btn btn-primary">start</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_change_log_level %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Change Websphere logging level</h5>
+                <p class="card-text"></p>
+                <a href="/changelog" class="btn btn-primary">Change</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+</dev>
+<dev>
+    {% if perms.auth.command_executer %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Command Executer</h5>
+                <p class="card-text"></p>
+                <a href="/getcommandexecuterPage" class="btn btn-primary">start</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+    {% if perms.auth.can_get_string_count %}
+    <dev class="col">
+        <div class="card" style="width: 18rem;">
+            <!--img src="..." class="card-img-top" alt="..."-->
+            <div class="card-body">
+                <h5 class="card-title">Get Exceptions count</h5>
+                <p class="card-text"></p>
+                <a href="/countexceptions" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </dev>
+    {% endif %}
+
+</dev>
+</dev>
+
+<script type="text/javascript">
+    console.log(response)
+</script>
+
+{% endblock %}

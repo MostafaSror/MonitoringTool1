@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter info of env.</h1>
+    <form>
+        <label for="groupList">Group Name:</label>
+        <select id="groupList" name="group" required >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br>
+        <label for="serverList">List of related IPs:</label>
+        <select id="serverList" name="server" multiple ></select>
+        <br>
+        <br />
+        <label for="Async">Required command:</label>
+        <input type="text" size="30" name="Async" id="Async" required />
+        <br>
+    </form>
+    <button id="myButton" class="float-left submit-button" >Search</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <h2>Result:</h2>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var Async = document.getElementById("Async").value;
+            var list1 = document.getElementById('groupList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            var ipliststring= '';
+            var ipSelectedValues = $('#serverList').val();
+
+            if (ipSelectedValues == null){
+                alert("please choose from list of IPs, press ctrl+click for multiple values");
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+            }else{
+                for (i=0 ; i < ipSelectedValues.length ; i++){
+                    ipliststring = ipliststring + ipSelectedValues[i] + ':'
+                }
+
+                var data = {'Async': Async , 'search_group':list1SelectedValue , 'ip_list':ipliststring };
+
+                $.post("sendcommandfn", data,function(response){
+                    $(".spinner-border").hide();
+                    document.getElementById("myButton").style.display = "block";
+                    document.getElementById("result").innerHTML = response;
+                }).fail(function(){
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+                document.getElementById("result").innerHTML = 'general error';
+            });
+            }
+        };
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('serverList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            list2.options.length=0;
+
+            {% for s in servers %}
+                var result = '{{s.group_name.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ s.IP }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+        }
+    </script>
+
+    {% endblock %}
+
+</div>

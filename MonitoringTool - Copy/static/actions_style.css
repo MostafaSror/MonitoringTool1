@@ -1,0 +1,44 @@
+th {
+    background-color: crimson;
+    text-transform: uppercase;
+    padding : 5px;
+}
+
+
+label{
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 10%;
+    text-align: left;
+}
+input {
+  display: inline-block;
+  float: left;
+  width : 30%;
+  margin-bottom : 5px;
+}
+
+table {
+    padding : 5px;
+    border : 2px;
+}
+
+body {
+    background-color: pink;
+}
+
+.search_type{
+    margin: 10px;
+}
+
+
+.info-class:nth-child(n):hover {
+  background-color: #FFA500;
+}
+.info-class:nth-child(even) {
+    background-color: #D3D3D3;
+}
+.info-class:nth-child(odd) {
+    background-color: #FAF0E6;
+}

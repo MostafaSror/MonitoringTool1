@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+
+<div class="row" style="margin-top: 100px;">
+    {% block content %}
+    {% csrf_token %}
+    <h1>Please enter deployment info</h1>
+    <form enctype ="multipart/form-data">
+        <label for="actionsList">Action Type:</label>
+        <select id="actionsList" name="actionsList" required >
+            <option value='deployment'>deployment</option>
+            <option value='change resources'>change resources</option>
+            <option value='move resources'>move resources</option>
+            <option value='move lib'>move lib</option>
+            <option value='deploy queues'>deploy queues</option>
+            <option value='stop application'>stop application</option>
+            <option value='start application'>start application</option>
+            <option value='uninstall application'>uninstall application</option>
+            <option value='create shared lib'>create shared lib</option>
+            <option value='Restart Websphere App Server'>Restart Websphere App Server</option>
+            <option value='disable auto start'>disable auto start</option>
+            <option value='enable auto start'>enable auto start</option>
+            <option value='Running Apps'>Get Running Apps</option>
+        </select>
+        <br />
+        <br />
+        <label for="appsList" id="appsListLabel">App Type:</label>
+        <select id="appsList" name="apps" required onclick="getApps()">
+            {% for app in apps %}
+            <option value={{ app.Code }}>{{ app.Code }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="groupList" id="groupListLabel">Group Name:</label>
+        <select id="groupList" name="group" required >
+            {% for group in groups %}
+            <option value={{ group.groupName }}>{{ group.groupName }}</option>
+            {% endfor %}
+        </select>
+        <br />
+        <br />
+        <label for="serverList">List of related IPs:</label>
+        <select id="serverList" name="server" multiple ></select>
+        <br />
+        <br />
+        <label for="newear" id="newearlabel">Deployed ear name:</label>
+        <input type="text" size="30" name="newear" id="newear" required />
+        <label for="onlinebar" style="display: none" id="onlinebarlabel">online bar name:</label>
+        <input type="text" size="30" name="onlinebar" id="onlinebar" required style="display: none"/>
+        <label for="resourcename" style="display: none" id="resourcenamelabel">resource name:</label>
+        <input type="text" size="30" name="resourcename" id="resourcename" required style="display: none"/>
+        <br>
+        <br />
+        <label for="oldear" id="oldearlabel">Old ear name:</label>
+        <input type="text" size="30" name="oldear" id="oldear" required />
+        <label for="offlinebar" style="display: none" id="offlinebarlabel">offline bar name:</label>
+        <input type="text" size="30" name="offlinebar" id="offlinebar" required style="display: none"/>
+        <label for="resourcepath" style="display: none" id="resourcepathlabel">resource path:</label>
+        <input type="text" size="150" name="resourcepath" id="resourcepath" required style="display: none"/>
+        <br><br>
+        <p class="deploy_options" ><input type="checkbox" id="resources" name="resources" value="true"> includes resources</p>
+        <p class="deploy_options" ><input type="checkbox" id="queues" name="queues" value="true"> includes queues</p>
+        <p class="deploy_options" ><input type="checkbox" id="startear" name="startear" value="true"> start the ear</p>
+        <br>
+    </form>
+    <br>
+    <button id="myButton" class="float-left submit-button" >Start</button>
+    <div class="spinner-border text-warning" role="status" style="display: none">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <br>
+    <br>
+    <button id="exportbutton" class="float-left submit-button" style="display: none">Export</button>
+    <h2>Result:</h2>
+
+    <p id="result" style="border-width: 5px; border-style: inset; background-color: #f1abab; padding:15px; white-space: pre-line"></p>
+
+    <script type="text/javascript">
+
+        document.getElementById("myButton").onclick = function () {
+            document.getElementById("myButton").style.display = "none";
+            $(".spinner-border").show();
+            var actionsList = document.getElementById('actionsList');
+            var actionsListSelected = actionsList.options[actionsList.selectedIndex].value;
+            var list1 = document.getElementById('groupList');
+            var groupsListSelectedValue = list1.options[list1.selectedIndex].value;
+            var applist = document.getElementById('appsList');
+            var appsListSelectedValue = applist.options[applist.selectedIndex].value;
+            var ipSelectedValues = $('#serverList').val();
+            var newEar = document.getElementById("newear").value;
+            var oldEar = document.getElementById("oldear").value;
+            var onlinebar = document.getElementById("onlinebar").value;
+            var offlinebar = document.getElementById("offlinebar").value;
+            var resourcename = document.getElementById("resourcename").value;
+            var resourcepath = document.getElementById("resourcepath").value;
+
+            var hasResources = false;
+            var hasQueues = false;
+            var startEar = false;
+            console.log(document.getElementById("resources").checked)
+
+            if (document.getElementById("resources").checked == true){
+                hasResources = true;
+            }
+            if (document.getElementById("queues").checked == true){
+                hasQueues = true;
+            }
+            if (document.getElementById("startear").checked == true){
+                startEar = true;
+            }
+
+            actionsNotRequireAppType = ['deployment', 'change resources']
+            if (!(actionsNotRequireAppType.includes(actionsListSelected)) ){
+                appsListSelectedValue = 'gateway'
+            }
+
+            var ipliststring= '';
+
+            if (ipSelectedValues == null){
+                alert("please choose from list of IPs, press ctrl+click for multiple values");
+                $(".spinner-border").hide();
+                document.getElementById("myButton").style.display = "block";
+            }else{
+                for (i=0 ; i < ipSelectedValues.length ; i++){
+                    ipliststring = ipliststring + ipSelectedValues[i] + ':'
+                }
+                var data = { 'search_group':groupsListSelectedValue ,
+                         'app_type':appsListSelectedValue,
+                         'ip_list':ipliststring,
+                         'new_ear':newEar,
+                         'old_ear':oldEar,
+                         'hasResources':hasResources,
+                         'hasQueues':hasQueues,
+                         'startEar':startEar,
+                         'action_type':actionsListSelected,
+                         'online_bar':onlinebar,
+                         'offline_bar':offlinebar,
+                         'resource_name':resourcename,
+                         'resource_path':resourcepath,
+
+                };
+
+                $.post("deployfn", data, function(response){
+                    $(".spinner-border").hide();
+                    document.getElementById("myButton").style.display = "block";
+                    document.getElementById("result").innerHTML = response;
+                    if(actionsListSelected == 'Running Apps'){
+                        document.getElementById("exportbutton").style.display = "block";
+                    }
+                });
+            }
+
+        };
+
+        document.getElementById("exportbutton").onclick = function () {
+            document.getElementById("exportbutton").style.display = "none";
+            if(actionsListSelected == 'Running Apps'){
+                tab = document.getElementById('runapplist'); // id of table
+                tables = document.getElementsByClassName("deploy_options") = "none";
+                console.log(tables)
+            }
+        }
+
+        groupList.onclick = function getServers(){
+            var list1 = document.getElementById('groupList');
+            var list2 = document.getElementById('serverList');
+            var list1SelectedValue = list1.options[list1.selectedIndex].value;
+
+            list2.options.length=0;
+
+            {% for s in servers %}
+                var result = '{{s.group_name.groupName}}'.localeCompare(list1SelectedValue);
+                if (result == 0){
+                    var option = document.createElement('option');
+                    option.text = "{{ s.IP }}";
+                    list2.add(option);
+                }
+            {% endfor %}
+        }
+        function getApps(){
+            var actionsList = document.getElementById('actionsList');
+            var actionsListSelected = actionsList.options[actionsList.selectedIndex].value;
+            var applist = document.getElementById('appsList');
+            var appSelected = applist.options[applist.selectedIndex].value;
+
+            if(appSelected == 'Switch' && actionsListSelected == 'deployment'){
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "block";
+                document.getElementById("onlinebar").style.display = "block";
+                document.getElementById("offlinebarlabel").style.display = "block";
+                document.getElementById("offlinebar").style.display = "block";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if (appSelected != 'Switch' && actionsListSelected == 'deployment'){
+                document.getElementById("newearlabel").style.display = "block";
+                document.getElementById("newear").style.display = "block";
+                document.getElementById("oldearlabel").style.display = "block";
+                document.getElementById("oldear").style.display = "block";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "block";
+                document.getElementsByClassName("deploy_options")[1].style.display = "block";
+                document.getElementsByClassName("deploy_options")[2].style.display = "block";
+            }
+
+        }
+
+        actionsList.onclick = function getActionsPage(){
+            var actionsList = document.getElementById('actionsList');
+            var actionsListSelected = actionsList.options[actionsList.selectedIndex].value;
+            var applist = document.getElementById('appsList');
+            var appSelected = applist.options[applist.selectedIndex].value;
+
+            if(actionsListSelected == 'deployment'){
+                document.getElementById("appsListLabel").style.display = "block";
+                document.getElementById("appsList").style.display = "block";
+                document.getElementById("exportbutton").style.display = "none";
+                getApps();
+            }
+            else if(actionsListSelected == 'change resources'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "block";
+                document.getElementById("appsList").style.display = "block";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'move resources'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'move lib'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'deploy queues'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'stop application'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "block";
+                document.getElementById("oldear").style.display = "block";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'start application'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "block";
+                document.getElementById("newear").style.display = "block";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'uninstall application'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "block";
+                document.getElementById("oldear").style.display = "block";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'create shared lib'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "block";
+                document.getElementById("resourcename").style.display = "block";
+                document.getElementById("resourcepathlabel").style.display = "block";
+                document.getElementById("resourcepath").style.display = "block";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'Restart Websphere App Server'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'Running Apps'){
+
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "none";
+                document.getElementById("oldear").style.display = "none";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'enable auto start'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "block";
+                document.getElementById("oldear").style.display = "block";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+            else if(actionsListSelected == 'disable auto start'){
+                document.getElementById("exportbutton").style.display = "none";
+                document.getElementById("appsListLabel").style.display = "none";
+                document.getElementById("appsList").style.display = "none";
+                document.getElementById("newearlabel").style.display = "none";
+                document.getElementById("newear").style.display = "none";
+                document.getElementById("oldearlabel").style.display = "block";
+                document.getElementById("oldear").style.display = "block";
+                document.getElementById("resourcenamelabel").style.display = "none";
+                document.getElementById("resourcename").style.display = "none";
+                document.getElementById("resourcepathlabel").style.display = "none";
+                document.getElementById("resourcepath").style.display = "none";
+                document.getElementById("onlinebarlabel").style.display = "none";
+                document.getElementById("onlinebar").style.display = "none";
+                document.getElementById("offlinebarlabel").style.display = "none";
+                document.getElementById("offlinebar").style.display = "none";
+                document.getElementsByClassName("deploy_options")[0].style.display = "none";
+                document.getElementsByClassName("deploy_options")[1].style.display = "none";
+                document.getElementsByClassName("deploy_options")[2].style.display = "none";
+            }
+        }
+
+    </script>
+    {% endblock %}
+</div>
